@@ -1,0 +1,10 @@
+# Investigación de Proyectos de Inteligencia Artificial
+
+## 1. Predictor de Deserción Estudiantil
+Este proyecto resuelve la problemática institucional de identificar de manera temprana a los estudiantes en riesgo de abandonar sus estudios universitarios para implementar estrategias de retención oportunas. Para lograrlo, se necesitan datos históricos académicos (calificaciones, porcentaje de créditos aprobados), variables socioeconómicas y registros de asistencia o uso de plataformas virtuales. El modelo de IA adecuado es un clasificador supervisado, como Random Forest o Regresión Logística, capaz de calcular la probabilidad de deserción basándose en patrones históricos.
+
+## 2. Segmentación de Clientes para Comercio Electrónico
+Este sistema resuelve la necesidad de agrupar a los compradores según su comportamiento de compra y preferencias para optimizar las campañas de marketing y personalizar las ofertas comerciales. Los datos requeridos incluyen historiales de transacciones, frecuencia de compra, montos gastados y categorías de productos más visitados. El enfoque ideal emplea aprendizaje no supervisado mediante algoritmos de agrupamiento (Clustering), específicamente K-Means, para identificar clusters naturales de clientes.
+
+## 3. Clasificador Automático de Síntomas Médicos
+Esta solución aborda el reto de triaje y priorización de pacientes en centros de salud mediante una evaluación inicial automatizada basada en texto o formularios de síntomas. Se requieren datos basados en historiales clínicos anonimizados, descripciones textuales de dolencias y su diagnóstico asociado validado por personal médico. El modelo adecuado corresponde a un clasificador de procesamiento de lenguaje natural (PLN) utilizando redes neuronales o modelos preentrenados como BERT para interpretar el lenguaje clínico y categorizar la urgencia.
