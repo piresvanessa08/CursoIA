@@ -1,6 +1,6 @@
-ciudad,temperatura
-Cartago,28
-Cartago,30
-Cartago,25
-Cartago,27
-Cartago,29
+cultivo,hectareas,produccion_toneladas,precio_tonelada_cop
+Cafe,5,3.2,1200000
+Cana,10,8.5,850000
+Maiz,3,1.8,950000
+Platano,4,6.0,700000
+Yuca,2,2.5,600000
