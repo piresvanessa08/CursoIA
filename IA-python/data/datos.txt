@@ -1,1 +1,1 @@
-Hola, este es un documento de Python.
+Hola, este es un documento escrito desde Python.
