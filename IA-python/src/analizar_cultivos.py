@@ -3,7 +3,7 @@ import csv
 def leer_cultivos(archivo_csv):
     """Lee un archivo CSV y retorna una lista de diccionarios."""
     cultivos = []
-    with open(archivo_csv, "r") as archivo:
+    with open(archivo_csv, "r", encoding="utf-8") as archivo:
         lector = csv.DictReader(archivo)
         for fila in lector:
             cultivo = {
@@ -31,7 +31,7 @@ def calcular_estadisticas(cultivos):
 
 def generar_informe(estadisticas, archivo_salida):
     """Genera un informe en Markdown con las estadísticas."""
-    with open(archivo_salida, "w") as archivo:
+    with open(archivo_salida, "w", encoding="utf-8") as archivo:
         archivo.write("# Informe de Cultivos\n\n")
         archivo.write(f"**Total de hectáreas:** {estadisticas['total_hectareas']:.2f}\n")
         archivo.write(f"**Total de producción (toneladas):** {estadisticas['total_produccion']:.2f}\n")

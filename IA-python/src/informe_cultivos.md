@@ -1,7 +1,7 @@
 # Informe de Cultivos
 
-**Total de hect�reas:** 28.00
-**Total de producci�n (toneladas):** 19.60
+**Total de hectáreas:** 28.00
+**Total de producción (toneladas):** 19.60
 **Promedio de rendimiento (ton/ha):** 0.70
-**Cultivo con mayor producci�n:** Caña
-**Cultivo con menor producci�n:** Maíz
+**Cultivo con mayor producción:** Caña
+**Cultivo con menor producción:** Maíz
