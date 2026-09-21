@@ -1,25 +1,118 @@
-# TurismoCartago IA 🌎🤖
+# TurismoCartago IA
 
-Repositorio oficial para el avance del primer corte del proyecto de Inteligencia Artificial.
+Proyecto académico de Inteligencia Artificial para analizar sitios turísticos de
+Cartago, Valle del Cauca, y generar recomendaciones según las preferencias del
+usuario.
 
-## 📌 A. Definición del Proyecto
-* **Nombre del proyecto:** TurismoCartago IA
-* **Problemática:** Los ciudadanos y turistas en Cartago, Valle del Cauca, carecen de una herramienta analítica y automatizada que permita conocer la afluencia real, categorías y características de los sitios turísticos de la ciudad para planificar mejores experiencias[cite: 1, 2].
-* **Objetivo:** Desarrollar un sistema en Python que procese datos turísticos locales, ejecute un análisis exploratorio (EDA) con NumPy y provea un recomendador inteligente basado en preferencias de los usuarios[cite: 1, 2].
-* **Datos:** Dataset estructurado de manera propia basado en 7 sitios turísticos oficiales de Cartago (incluyendo Parque de Bolívar, Casa del Virrey, Parque de la Isleta, entre otros) con información de categorías, visitantes mensuales, calificaciones, precios y horarios.
+## Objetivos
 
-## 📂 B. Estructura de Datos
-* Archivo principal de datos: `sitios_turisticos_cartago.csv` cargado mediante lectura de archivos en Python.
-* Procesamiento de datos implementado mediante **listas de diccionarios**.
-* Funciones definidas en el código para lectura, análisis estadístico y recomendación.
+- Leer y procesar los datos turísticos desde un archivo CSV.
+- Calcular estadísticas de visitantes y calificaciones con NumPy.
+- Generar una gráfica de afluencia con Matplotlib.
+- Recomendar sitios por categoría o por acceso gratuito.
+- Ejecutar el proyecto localmente o dentro de Docker.
 
-## 📊 C. Análisis Exploratorio de Datos (EDA)
-* **Herramientas:** Uso de **NumPy** para cálculos estadísticos (promedio, máximo, mínimo y desviación estándar de visitantes) y **Matplotlib** para la generación de gráficos de barras de afluencia[cite: 1, 2].
-* **Hallazgos clave:**
-  1. *Afluencia Comercial y Religiosa:* El Centro Comercial Nuestro Cartago (5,000 visitantes/mes) y la Catedral Nuestra Señora del Carmen (4,200 visitantes/mes) concentran la mayor afluencia de la ciudad.
-  2. *Potencial Cultural:* La Casa del Virrey destaca por poseer la calificación más alta (4.9 estrellas), pero registra una menor afluencia (1,200 visitantes), lo que señala una oportunidad clave para impulsar el turismo histórico-cultural.
+## Tecnologías
 
-## 🛠️ D. Instrucciones de Ejecución
-1. Asegúrate de tener instaladas las librerías requeridas:
-   ```bash
-   pip install numpy matplotlib
+- Python
+- NumPy
+- Pandas
+- Matplotlib
+- Seaborn
+- Docker
+- Docker Compose
+- Git y GitHub
+
+## Estructura
+
+```text
+CursoIA/
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── README.md
+├── data/
+│   └── sitios_turisticos_cartago.csv
+├── graficos/
+│   └── visitantes_sitios.png
+├── src/
+│   ├── cargar_datos.py
+│   ├── eda_proyecto.py
+│   ├── main.py
+│   └── recomendador.py
+└── tests/
+```
+
+## Datos
+
+El archivo `data/sitios_turisticos_cartago.csv` contiene siete sitios con
+nombre, categoría, visitantes mensuales, calificación, precio y horario.
+Entre los registros se encuentra Restaurante Casa Vieja, de categoría
+Gastronomía, con horario de 12:00 m a 9:00 p.m.
+
+## Análisis y gráfica
+
+El programa calcula el total de sitios, promedio, máximo, mínimo y desviación
+estándar de visitantes, además del promedio general de calificaciones.
+
+La gráfica se guarda en:
+
+```text
+graficos/visitantes_sitios.png
+```
+
+Las barras utilizan colores por categoría y muestran el número de visitantes
+encima de cada barra.
+
+## Ejecución local
+
+Desde la carpeta raíz del proyecto:
+
+```powershell
+python src\main.py
+```
+
+El menú ofrece estas opciones:
+
+1. Histórico / Cultural
+2. Recreativo / Natural
+3. Religioso
+4. Gastronómico / Compras
+5. Lugares gratuitos
+6. Salir
+
+## Ejecución con Docker
+
+Construir la imagen:
+
+```powershell
+docker compose build
+```
+
+Ejecutar el programa:
+
+```powershell
+docker compose run --rm turismo-cartago
+```
+
+Detener servicios activos:
+
+```powershell
+docker compose down
+```
+
+La gráfica se guarda en la carpeta `graficos` del proyecto porque Docker monta
+la carpeta local como volumen.
+
+## Comprobaciones
+
+Para confirmar que Docker funciona:
+
+```powershell
+docker run hello-world
+docker compose build
+docker compose run --rm turismo-cartago
+```
+
+El proyecto fue probado con ejecución local y dentro de Docker. La rama
+principal se encuentra sincronizada con el repositorio de GitHub.
