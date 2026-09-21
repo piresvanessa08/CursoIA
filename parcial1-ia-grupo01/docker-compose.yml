@@ -1,0 +1,4 @@
+services:
+  parcial:
+    build: .
+    container_name: parcial1-ia-grupo01
