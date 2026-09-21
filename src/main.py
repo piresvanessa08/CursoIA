@@ -3,6 +3,7 @@ from cargar_datos import leer_datos
 from eda_proyecto import mostrar_resumen, generar_grafico
 from recomendador import recomendar_con_ia
 
+
 def main():
     ruta_csv = os.path.join(os.path.dirname(__file__), "..", "data", "sitios_turisticos_cartago.csv")
     
@@ -31,20 +32,20 @@ def main():
         opcion = input("\nSelecciona el número de tu opción (1-6): ").strip()
         
         if opcion == "6":
-            print("\n👋 ¡Gracias por usar TurismoCartago IA! Éxitos en tu presentación. 🌎")
+            print("\n👋 ¡Gracias por usar TurismoCartago IA! 🌎")
             break
             
         cat_filtro = None
         gratis_filtro = False
         
         if opcion == "1":
-            cat_filtro = "Cultural"
+            cat_filtro = ["Histórico", "Cultural"]
         elif opcion == "2":
             cat_filtro = "Recreativo"
         elif opcion == "3":
             cat_filtro = "Religioso"
         elif opcion == "4":
-            cat_filtro = "Gastronomia"
+            cat_filtro = ["Gastronomía", "Compras"]
         elif opcion == "5":
             gratis_filtro = True
             print("\n🔍 Analizando lugares con acceso gratuito...")
