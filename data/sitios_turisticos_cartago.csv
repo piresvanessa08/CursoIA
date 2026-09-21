@@ -1,9 +1,8 @@
-nombre,categoria,descripcion,distancia_km,precio_promedio,atractivo
-Parque Nacional Cahuita,Naturaleza,"Playas, senderos y observación de fauna tropical.",18,12000,"playa, senderismo, fauna"
-Ruinas de Cartago,Historia,"Sitios arqueológicos e históricos de la ciudad colonial.",5,8000,"historia, cultura, arqueología"
-Iglesia de La Soledad,Religioso,"Templo emblemático con valor patrimonial y arquitectura colonial.",4,5000,"religión, arquitectura, cultura"
-La Casona del Turismo,Patrimonio,"Centro para el conocimiento de la historia y tradiciones de Cartago.",3,6000,"patrimonio, cultura, educación"
-Catarata del Orosí,Naturaleza,"Área de caminata y recreación rodeada de bosque y agua.",22,15000,"cascada, aventura, paisaje"
-Museo de la Inquisición,Historia,"Museo con relatos históricos y objetos patrimoniales.",6,7000,"historia, museo, patrimonio"
-Reserva Forestal Los Santos,Naturaleza,"Bosque y miradores ideales para actividades eco-turísticas.",16,11000,"bosque, senderismo, paisaje"
-Plaza Mayor de Cartago,Cultural,"Centro de encuentro local con comercio y ambiente tradicional.",2,0,"cultura, comercio, vida local"
+nombre,categoria,visitantes_mes,calificacion,precio,horario
+Parque de Bolívar,Histórico,3500,4.6,0,Abierto 24 horas
+Catedral Nuestra Señora del Carmen,Religioso,4200,4.8,0,06:00 - 19:00
+Casa del Virrey,Cultural,1200,4.9,5000,09:00 - 18:00
+Parque Lineal Santuario de los Samanes,Recreativo,2800,4.4,0,06:00 - 21:00
+Restaurante Típico Cartagüeño,Gastronomía,1500,4.7,25000,11:00 - 22:00
+Centro Comercial Nuestro Cartago,Compras,5000,4.3,0,10:00 - 20:00
+Parque de la Isleta,Recreativo,3200,4.7,0,06:00 - 20:00

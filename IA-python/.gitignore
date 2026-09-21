@@ -1,9 +1,0 @@
-__pycache__/
-*.py[cod]
-.ipynb_checkpoints/
-.env
-.venv/
-venv/
-.pytest_cache/
-.vscode/
-data/raw/

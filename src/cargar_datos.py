@@ -1,18 +1,16 @@
-from pathlib import Path
-import pandas as pd
+import csv
 
-
-def cargar_datos(ruta_csv: str | Path) -> pd.DataFrame:
-    """Carga el archivo CSV de sitios turísticos."""
-    ruta = Path(ruta_csv)
-    if not ruta.exists():
-        raise FileNotFoundError(f"No se encontró el archivo: {ruta}")
-
-    df = pd.read_csv(ruta)
-    return df
-
-
-if __name__ == "__main__":
-    archivo = Path(__file__).resolve().parents[1] / "data" / "sitios_turisticos_cartago.csv"
-    datos = cargar_datos(archivo)
-    print(datos.head())
+def leer_datos(ruta):
+    datos = []
+    with open(ruta, "r", encoding="utf-8") as archivo:
+        lector = csv.DictReader(archivo)
+        for fila in lector:
+            datos.append({
+                "nombre": fila["nombre"],
+                "categoria": fila["categoria"],
+                "visitantes_mes": int(fila["visitantes_mes"]),
+                "calificacion": float(fila["calificacion"]),
+                "precio": float(fila["precio"]),
+                "horario": fila["horario"]
+            })
+    return datos
