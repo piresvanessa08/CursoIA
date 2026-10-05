@@ -39,6 +39,7 @@ CursoIA/
 │   ├── cargar_datos.py
 │   ├── eda_proyecto.py
 │   ├── main.py
+│   ├── preparacion_datos.py
 │   └── recomendador.py
 └── tests/
 ```
@@ -63,6 +64,25 @@ graficos/visitantes_sitios.png
 
 Las barras utilizan colores por categoría y muestran el número de visitantes
 encima de cada barra.
+
+## Exploración y preparación para Machine Learning
+
+La aplicación principal y su recomendador siguen funcionando como antes.
+Para ejecutar por separado la actividad basada en Pandas y Seaborn:
+
+```powershell
+python src\preparacion_datos.py
+```
+
+El script muestra dimensiones, tipos de datos, estadísticas, valores nulos y
+duplicados; elimina duplicados e imputa valores faltantes con la mediana para
+columnas numéricas o la moda para columnas de texto. Genera gráficos
+adicionales en `graficos/` y guarda un CSV codificado y escalado en
+`data/sitios_turisticos_preparados_ml.csv`. No modifica el CSV original ni
+entrena un modelo. Este resultado es una demostración de preparación: cuando
+se entrene un modelo, la división train/test debe hacerse antes de ajustar el
+escalador, usando solo los datos de entrenamiento. La división queda para la
+siguiente clase, tal como indica la guía.
 
 ## Ejecución local
 
