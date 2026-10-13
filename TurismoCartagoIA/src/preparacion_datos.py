@@ -3,7 +3,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-from sklearn.preprocessing import StandardScaler
 
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -35,6 +34,10 @@ def explorar_datos(datos):
     print(f"Dimensiones: {datos.shape[0]} filas, {datos.shape[1]} columnas")
     print("\nPrimeras filas:")
     print(datos.head())
+    print("\nÚltimas filas:")
+    print(datos.tail())
+    print("\nInformación general:")
+    datos.info()
     print("\nTipos de datos:")
     print(datos.dtypes)
     print("\nEstadísticas descriptivas:")
@@ -44,8 +47,62 @@ def explorar_datos(datos):
     print(f"\nFilas duplicadas: {datos.duplicated().sum()}")
 
 
+def analizar_operaciones_pandas(datos):
+    """Demuestra selección, filtrado, agrupación y ordenamiento con datos reales."""
+    columnas_clave = datos[["nombre", "categoria", "visitantes_mes", "calificacion"]]
+    print("\nColumnas seleccionadas para analizar los sitios:")
+    print(columnas_clave.head())
+
+    umbral_visitantes = datos["visitantes_mes"].median()
+    sitios_mayor_afluencia = datos.loc[
+        datos["visitantes_mes"] >= umbral_visitantes,
+        ["nombre", "categoria", "visitantes_mes"],
+    ].sort_values("visitantes_mes", ascending=False)
+    print(
+        "\nSitios con visitantes iguales o superiores a la mediana "
+        f"({umbral_visitantes:.0f}), ordenados de mayor a menor:"
+    )
+    print(sitios_mayor_afluencia.to_string(index=False))
+
+    resumen_categorias = (
+        datos.groupby("categoria", as_index=False)
+        .agg(
+            cantidad_sitios=("nombre", "count"),
+            visitantes_totales=("visitantes_mes", "sum"),
+            promedio_visitantes=("visitantes_mes", "mean"),
+            calificacion_promedio=("calificacion", "mean"),
+        )
+        .sort_values("visitantes_totales", ascending=False)
+    )
+    print("\nResumen por categoría, ordenado por visitantes totales:")
+    print(resumen_categorias.to_string(index=False, formatters={
+        "promedio_visitantes": "{:,.2f}".format,
+        "calificacion_promedio": "{:.2f}".format,
+    }))
+
+
 def limpiar_datos(datos):
-    datos_limpios = datos.drop_duplicates().copy()
+    datos_limpios = datos.copy()
+
+    duplicados = datos_limpios.duplicated()
+    if duplicados.any():
+        print(f"Filas duplicadas detectadas y excluidas: {int(duplicados.sum())}")
+        datos_limpios = datos_limpios.loc[~duplicados].copy()
+    else:
+        print("No se encontraron filas duplicadas.")
+
+    for columna in NUMERIC_COLUMNS:
+        datos_limpios[columna] = pd.to_numeric(datos_limpios[columna], errors="coerce")
+
+    limites = {
+        "visitantes_mes": datos_limpios["visitantes_mes"] < 0,
+        "calificacion": datos_limpios["calificacion"].notna()
+        & ~datos_limpios["calificacion"].between(0, 5),
+        "precio": datos_limpios["precio"] < 0,
+    }
+    for columna, invalidos in limites.items():
+        if invalidos.any():
+            raise ValueError(f"Hay valores imposibles o inconsistentes en '{columna}'.")
 
     for columna in datos_limpios.columns:
         if not datos_limpios[columna].isnull().any():
@@ -53,6 +110,8 @@ def limpiar_datos(datos):
 
         if pd.api.types.is_numeric_dtype(datos_limpios[columna]):
             valor_relleno = datos_limpios[columna].median()
+        elif columna in {"nombre", "horario"}:
+            valor_relleno = "No especificado"
         else:
             valores = datos_limpios[columna].mode()
             if valores.empty:
@@ -68,19 +127,29 @@ def limpiar_datos(datos):
         datos_limpios[columna] = datos_limpios[columna].fillna(valor_relleno)
         print(f"Valores faltantes de '{columna}' imputados con: {valor_relleno}")
 
-    duplicados_eliminados = len(datos) - len(datos_limpios)
-    if duplicados_eliminados:
-        print(f"Filas duplicadas eliminadas: {duplicados_eliminados}")
-    else:
-        print("No se encontraron filas duplicadas.")
-
     return datos_limpios
+
+
+def agregar_caracteristicas(datos):
+    """Añade un indicador derivado sin modificar la fuente original."""
+    resultado = datos.copy()
+    resultado["es_gratuito"] = resultado["precio"].eq(0).astype(int)
+    return resultado
 
 
 def visualizar_datos(datos, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     sns.set_theme(style="whitegrid")
+
+    figura, eje = plt.subplots(figsize=(8, 5))
+    sns.histplot(data=datos, x="visitantes_mes", bins="auto", kde=True, ax=eje)
+    eje.set_title("Distribución de visitantes mensuales por sitio")
+    eje.set_xlabel("Visitantes mensuales (personas)")
+    eje.set_ylabel("Cantidad de sitios")
+    figura.tight_layout()
+    figura.savefig(output_dir / "seaborn_distribucion_visitantes.png", dpi=150)
+    plt.close(figura)
 
     figura, eje = plt.subplots(figsize=(9, 5))
     sns.barplot(
@@ -118,7 +187,8 @@ def visualizar_datos(datos, output_dir):
 
 
 def preparar_ml(datos):
-    datos_ml = datos[["categoria", *NUMERIC_COLUMNS]].copy()
+    # precio y es_gratuito representan la misma información; se evita duplicarla.
+    datos_ml = datos[["categoria", "visitantes_mes", "calificacion", "es_gratuito"]].copy()
     datos_ml = pd.get_dummies(
         datos_ml,
         columns=["categoria"],
@@ -126,16 +196,24 @@ def preparar_ml(datos):
         dtype=int,
     )
 
-    escalador = StandardScaler()
-    datos_ml[NUMERIC_COLUMNS] = escalador.fit_transform(datos_ml[NUMERIC_COLUMNS])
+    if datos_ml.isnull().any().any():
+        raise ValueError("El conjunto preparado conserva valores faltantes.")
+    if not all(pd.api.types.is_numeric_dtype(tipo) for tipo in datos_ml.dtypes):
+        raise ValueError("El conjunto preparado contiene columnas no numéricas.")
     return datos_ml
 
 
 def main():
     datos = cargar_datos(DATA_PATH)
     explorar_datos(datos)
+    analizar_operaciones_pandas(datos)
 
     datos_limpios = limpiar_datos(datos)
+    datos_limpios = agregar_caracteristicas(datos_limpios)
+    ruta_limpios = PROJECT_DIR / "data" / "datos_turisticos_limpios.csv"
+    datos_limpios.to_csv(ruta_limpios, index=False)
+    print(f"\nDatos limpios guardados en: {ruta_limpios}")
+
     visualizar_datos(datos_limpios, PROJECT_DIR / "graficos")
 
     datos_ml = preparar_ml(datos_limpios)

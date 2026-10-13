@@ -1,7 +1,6 @@
 import os
-
 from cargar_datos import leer_datos
-from eda_proyecto import generar_grafico, mostrar_resumen
+from eda_proyecto import mostrar_resumen, generar_grafico
 from recomendador import recomendar_con_ia
 
 
@@ -11,67 +10,57 @@ def main():
     ruta_graficos = os.path.join(proyecto_dir, "graficos")
 
     if not os.path.exists(ruta_csv):
-        print(f"Error: no se encontro el archivo de datos en {ruta_csv}")
+        print(f"❌ Error crítico: No se encontró el archivo de datos en {ruta_csv}")
         return
 
     datos = leer_datos(ruta_csv)
     mostrar_resumen(datos)
     generar_grafico(datos, ruta_graficos)
 
-    print("\n" + "=" * 50)
-    print("Bienvenido al Asistente IA de TurismoCartago")
-    print("=" * 50)
+    print("\n" + "="*50)
+    print("🤖 ¡Bienvenido al Asistente IA de TurismoCartago!")
+    print("="*50)
 
     while True:
-        print("\nQue tipo de experiencia buscas hoy en Cartago?")
-        print("1. Historico / Cultural")
+        print("\n¿Qué tipo de experiencia buscas hoy en Cartago?")
+        print("1. Histórico / Cultural")
         print("2. Recreativo / Natural")
         print("3. Religioso")
-        print("4. Gastronomico / Compras")
+        print("4. Gastronómico / Compras")
         print("5. Ver exclusivamente lugares gratuitos")
         print("6. Salir del sistema")
 
-        opcion = input("\nSelecciona el numero de tu opcion (1-6): ").strip()
+        # Usamos input() y limpiamos espacios con .strip()
+        opcion = input("\nSelecciona el número de tu opción (1-6): ").strip()
 
         if opcion == "6":
-            print("\nGracias por usar TurismoCartago IA.")
+            print("\n👋 ¡Gracias por usar TurismoCartago IA! 🌎")
             break
 
-        categoria_filtro = None
-        solo_gratis = False
+        cat_filtro = None
+        gratis_filtro = False
 
         if opcion == "1":
-            categoria_filtro = ["Histórico", "Cultural"]
+            cat_filtro = ["Histórico", "Cultural"]
         elif opcion == "2":
-            categoria_filtro = "Recreativo"
+            cat_filtro = "Recreativo"
         elif opcion == "3":
-            categoria_filtro = "Religioso"
+            cat_filtro = "Religioso"
         elif opcion == "4":
-            categoria_filtro = ["Gastronomía", "Compras"]
+            cat_filtro = ["Gastronomía", "Compras"]
         elif opcion == "5":
-            solo_gratis = True
+            gratis_filtro = True
+            print("\n🔍 Analizando lugares con acceso gratuito...")
         else:
-            print("Opcion no valida. Ingresa un numero del 1 al 6.")
+            print(f"\n❌ Opción no válida ('{opcion}'). Por favor, ingresa un número del 1 al 6.")
             continue
 
-        resultados = recomendar_con_ia(
-            datos,
-            categoria_filtro=categoria_filtro,
-            solo_gratis=solo_gratis
-        )
+        resultados = recomendar_con_ia(datos, categoria_filtro=cat_filtro, solo_gratis=gratis_filtro)
 
-        print("\nTOP DE RECOMENDACIONES:")
-        for indice, sitio in enumerate(resultados[:3], 1):
-            print(f"\n{indice}. {sitio['nombre']} ({sitio['categoria']})")
-            print(
-                f"   Calificacion: {sitio['calificacion']} | "
-                f"Precio: ${sitio['precio']:,.0f}"
-            )
-            print(
-                f"   Horario: {sitio['horario']} | "
-                f"Compatibilidad: {sitio['compatibilidad']}%"
-            )
-
-
+        print("\n✨ TOP DE RECOMENDACIONES IA PARA TI:")
+        for idx, sitio in enumerate(resultados[:3], 1):
+            print(f"\n{idx}. 📌 {sitio['nombre']} ({sitio['categoria']})")
+            print(f"   ⭐ Calificación: {sitio['calificacion']} | 💵 Precio: ${sitio['precio']:,.0f}")
+            print(f"   ⏰ Horario: {sitio['horario']} | 🎯 Índice de Match: {sitio['compatibilidad']}%")
 if __name__ == "__main__":
     main()

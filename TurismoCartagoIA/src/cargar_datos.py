@@ -1,6 +1,5 @@
 import csv
 
-
 def leer_datos(ruta):
     datos = []
     with open(ruta, "r", encoding="utf-8") as archivo:

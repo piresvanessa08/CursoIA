@@ -23,17 +23,16 @@ def recomendar_con_ia(datos, categoria_filtro=None, solo_gratis=False):
         else:
             score += 20.0
 
-        if not solo_gratis:
+        if solo_gratis and sitio["precio"] == 0.0:
+            score += 30.0
+        elif not solo_gratis:
             score += 15.0
 
-        score += sitio["calificacion"] * 5
+        score += (sitio["calificacion"] * 5)
 
         sitio_copia = sitio.copy()
         sitio_copia["compatibilidad"] = round(score, 1)
         recomendaciones.append(sitio_copia)
 
-    return sorted(
-        recomendaciones,
-        key=lambda sitio: sitio["compatibilidad"],
-        reverse=True
-    )
+    recomendaciones_ordenadas = sorted(recomendaciones, key=lambda x: x["compatibilidad"], reverse=True)
+    return recomendaciones_ordenadas
