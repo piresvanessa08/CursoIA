@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -181,6 +182,42 @@ def visualizar_datos(datos, output_dir):
     eje.set_ylabel("Calificación")
     figura.tight_layout()
     figura.savefig(output_dir / "seaborn_visitantes_calificacion.png", dpi=150)
+    plt.close(figura)
+
+    datos_objetivo = datos.copy()
+    umbral_visitantes = datos_objetivo["visitantes_mes"].median()
+    datos_objetivo["clase_afluencia"] = np.where(
+        datos_objetivo["visitantes_mes"] >= umbral_visitantes,
+        "Alta (>= mediana)",
+        "Baja (< mediana)",
+    )
+    datos_objetivo["acceso"] = np.where(
+        datos_objetivo["es_gratuito"].eq(1),
+        "Gratuito",
+        "Con costo",
+    )
+
+    figura, eje = plt.subplots(figsize=(9, 5))
+    sns.stripplot(
+        data=datos_objetivo,
+        x="clase_afluencia",
+        y="calificacion",
+        hue="acceso",
+        order=["Baja (< mediana)", "Alta (>= mediana)"],
+        hue_order=["Gratuito", "Con costo"],
+        dodge=True,
+        jitter=0.12,
+        size=9,
+        ax=eje,
+    )
+    eje.set_title(
+        f"Entradas y objetivo del perceptrón (mediana: {umbral_visitantes:.0f})"
+    )
+    eje.set_xlabel("Objetivo: nivel de afluencia")
+    eje.set_ylabel("Calificación")
+    eje.legend(title="Acceso")
+    figura.tight_layout()
+    figura.savefig(output_dir / "seaborn_entradas_objetivo.png", dpi=150)
     plt.close(figura)
 
     print(f"\nGráficos de Seaborn guardados en: {output_dir}")
