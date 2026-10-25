@@ -195,24 +195,54 @@ Fuentes compartidas por la autora del proyecto; consultadas el 22 de octubre de 
 
 Verificar que Docker está instalado y funciona:
 
+```bash
 docker run hello-world
+```
 
 Validar la configuración de Docker Compose:
 
+```bash
 docker compose config
+```
 
-Ejecutar las pruebas automatizadas del proyecto localmente, desde la carpeta TurismoCartagoIA:
+Ejecutar las pruebas automatizadas desde la carpeta `TurismoCartagoIA`:
 
+```bash
 python -m unittest discover -s tests -v
+```
 
-Si las pruebas terminan correctamente, se confirma que los casos incluidos en la suite pasan en ese entorno. La configuración válida de Docker Compose y las pruebas automatizadas comprueban aspectos diferentes del proyecto.
+Las pruebas permiten comprobar que los casos incluidos en la suite funcionan correctamente en el entorno local.
+
+## Ejecución con Docker
+
+Construir la imagen:
+
+```bash
+docker compose build
+```
+
+Ejecutar la aplicación principal:
+
+```bash
+docker compose run --rm turismo-cartago
+```
+
+Ejecutar la preparación de datos:
+
+```bash
 docker compose run --rm turismo-cartago python src/preparacion_datos.py
 ```
 
-Ejecutar el perceptrón dentro del contenedor:
+Ejecutar el perceptrón:
 
 ```bash
 docker compose run --rm turismo-cartago python src/perceptron_proyecto.py
+```
+
+Para abrir una terminal interactiva dentro del contenedor:
+
+```bash
+docker compose run --rm --entrypoint bash turismo-cartago
 ```
 
 Ya dentro del contenedor:
@@ -222,10 +252,10 @@ cd /app/src
 python perceptron_proyecto.py
 ```
 
-Detener servicios activos:
+Detener los servicios activos:
 
 ```bash
 docker compose down
 ```
 
-La gráfica se guarda en la carpeta `graficos` del proyecto porque Docker monta la carpeta local como volumen.
+Los archivos generados se guardan en la carpeta local `graficos` si el volumen está configurado para compartir esos archivos con el equipo.
