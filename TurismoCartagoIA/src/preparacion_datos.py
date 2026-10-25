@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from matplotlib.lines import Line2D
 
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -141,13 +142,58 @@ def agregar_caracteristicas(datos):
 def visualizar_datos(datos, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    sns.set_theme(style="whitegrid")
+    category_palette = {
+        "Histórico": "#2563EB",
+        "Religioso": "#0F766E",
+        "Cultural": "#7C3AED",
+        "Recreativo": "#D97706",
+        "Gastronomía": "#DB2777",
+        "Compras": "#475569",
+    }
+    sns.set_theme(
+        style="whitegrid",
+        rc={
+            "axes.edgecolor": "#CBD5E1",
+            "grid.color": "#E2E8F0",
+            "grid.linewidth": 0.8,
+            "axes.labelcolor": "#334155",
+            "xtick.color": "#475569",
+            "ytick.color": "#475569",
+            "text.color": "#0F172A",
+        },
+    )
 
     figura, eje = plt.subplots(figsize=(8, 5))
-    sns.histplot(data=datos, x="visitantes_mes", bins="auto", kde=True, ax=eje)
+    sns.histplot(
+        data=datos,
+        x="visitantes_mes",
+        bins="auto",
+        kde=True,
+        color="#93C5FD",
+        line_kws={"color": "#1D4ED8", "linewidth": 2},
+        ax=eje,
+    )
+    media_visitantes = datos["visitantes_mes"].mean()
+    mediana_visitantes = datos["visitantes_mes"].median()
+    eje.axvline(
+        media_visitantes,
+        color="#1D4ED8",
+        linestyle="--",
+        linewidth=2,
+        label=f"Media ({media_visitantes:,.0f})".replace(",", "."),
+    )
+    eje.axvline(
+        mediana_visitantes,
+        color="#E11D48",
+        linestyle=":",
+        linewidth=2.5,
+        label=f"Mediana ({mediana_visitantes:,.0f})".replace(",", "."),
+    )
     eje.set_title("Distribución de visitantes mensuales por sitio")
     eje.set_xlabel("Visitantes mensuales (personas)")
     eje.set_ylabel("Cantidad de sitios")
+    eje.legend(frameon=True, facecolor="white", edgecolor="#CBD5E1")
+    sns.despine(ax=eje)
     figura.tight_layout()
     figura.savefig(output_dir / "seaborn_distribucion_visitantes.png", dpi=150)
     plt.close(figura)
@@ -157,13 +203,19 @@ def visualizar_datos(datos, output_dir):
         data=datos,
         x="categoria",
         y="visitantes_mes",
+        hue="categoria",
+        hue_order=list(category_palette),
+        palette=category_palette,
+        dodge=False,
         errorbar=None,
+        legend=False,
         ax=eje,
     )
     eje.set_title("Visitantes mensuales promedio por categoría")
     eje.set_xlabel("Categoría")
     eje.set_ylabel("Visitantes mensuales promedio")
     eje.tick_params(axis="x", rotation=30)
+    sns.despine(ax=eje)
     figura.tight_layout()
     figura.savefig(output_dir / "seaborn_visitantes_categoria.png", dpi=150)
     plt.close(figura)
@@ -174,12 +226,27 @@ def visualizar_datos(datos, output_dir):
         x="visitantes_mes",
         y="calificacion",
         hue="categoria",
+        hue_order=list(category_palette),
+        palette=category_palette,
         s=100,
         ax=eje,
     )
     eje.set_title("Visitantes mensuales y calificación por sitio")
     eje.set_xlabel("Visitantes mensuales")
     eje.set_ylabel("Calificación")
+    eje.legend(title="Categoría", frameon=True, facecolor="white", edgecolor="#CBD5E1")
+    for sitio, x, y in zip(
+        datos["nombre"], datos["visitantes_mes"], datos["calificacion"]
+    ):
+        eje.annotate(
+            sitio,
+            (x, y),
+            xytext=(6, 5),
+            textcoords="offset points",
+            fontsize=8,
+            color="#334155",
+        )
+    sns.despine(ax=eje)
     figura.tight_layout()
     figura.savefig(output_dir / "seaborn_visitantes_calificacion.png", dpi=150)
     plt.close(figura)
@@ -198,24 +265,75 @@ def visualizar_datos(datos, output_dir):
     )
 
     figura, eje = plt.subplots(figsize=(9, 5))
-    sns.stripplot(
-        data=datos_objetivo,
-        x="clase_afluencia",
-        y="calificacion",
-        hue="acceso",
-        order=["Baja (< mediana)", "Alta (>= mediana)"],
-        hue_order=["Gratuito", "Con costo"],
-        dodge=True,
-        jitter=0.12,
-        size=9,
-        ax=eje,
-    )
+    clases = ["Baja (< mediana)", "Alta (>= mediana)"]
+    colores_clase = {
+        clases[0]: "#2563EB",
+        clases[1]: "#E11D48",
+    }
+    marcadores_acceso = {"Gratuito": "o", "Con costo": "s"}
+    for clase in clases:
+        for acceso, marcador in marcadores_acceso.items():
+            subconjunto = datos_objetivo.loc[
+                datos_objetivo["clase_afluencia"].eq(clase)
+                & datos_objetivo["acceso"].eq(acceso)
+            ]
+            sns.stripplot(
+                data=subconjunto,
+                x="clase_afluencia",
+                y="calificacion",
+                order=clases,
+                color=colores_clase[clase],
+                marker=marcador,
+                jitter=0.12,
+                size=9,
+                ax=eje,
+            )
     eje.set_title(
         f"Entradas y objetivo del perceptrón (mediana: {umbral_visitantes:.0f})"
     )
     eje.set_xlabel("Objetivo: nivel de afluencia")
     eje.set_ylabel("Calificación")
-    eje.legend(title="Acceso")
+    leyenda_clases = eje.legend(
+        handles=[
+            Line2D(
+                [0],
+                [0],
+                marker="o",
+                color="w",
+                markerfacecolor=colores_clase[clase],
+                markersize=8,
+                label=clase,
+            )
+            for clase in clases
+        ],
+        title="Clase de afluencia",
+        loc="upper right",
+        frameon=True,
+        facecolor="white",
+        edgecolor="#CBD5E1",
+    )
+    eje.add_artist(leyenda_clases)
+    eje.legend(
+        handles=[
+            Line2D(
+                [0],
+                [0],
+                marker=marcador,
+                color="#475569",
+                linestyle="None",
+                markersize=7,
+                label=acceso,
+            )
+            for acceso, marcador in marcadores_acceso.items()
+        ],
+        title="Acceso",
+        loc="lower right",
+        frameon=True,
+        facecolor="white",
+        edgecolor="#CBD5E1",
+    )
+    eje.grid(axis="x", visible=False)
+    sns.despine(ax=eje)
     figura.tight_layout()
     figura.savefig(output_dir / "seaborn_entradas_objetivo.png", dpi=150)
     plt.close(figura)
