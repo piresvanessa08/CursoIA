@@ -1,8 +1,6 @@
-# TurismoCartago IA
+# TurismoCartagoIA
 
-Proyecto académico de Inteligencia Artificial para analizar sitios turísticos de
-Cartago, Valle del Cauca, y generar recomendaciones según las preferencias del
-usuario.
+Proyecto académico de Inteligencia Artificial para analizar sitios turísticos de Cartago, Valle del Cauca, y generar recomendaciones según las preferencias del usuario.
 
 ## Objetivos
 
@@ -23,7 +21,7 @@ usuario.
 - Docker Compose
 - Git y GitHub
 
-## Estructura
+## Estructura del proyecto
 
 ```text
 TurismoCartagoIA/
@@ -31,252 +29,236 @@ TurismoCartagoIA/
 ├── docker-compose.yml
 ├── requirements.txt
 ├── README.md
+├── docs/
+│   └── Informe_Final_TurismoCartagoIA.pdf
 ├── data/
 │   ├── sitios_turisticos_cartago.csv
 │   ├── datos_turisticos_limpios.csv
-│   └── sitios_turisticos_preparados_ml.csv
+│   ├── sitios_turisticos_preparados_ml.csv
+│   ├── base_visitantes_municipal_2025.csv
+│   └── comparacion_modelos.csv
+├── models/
+│   └── modelo_turismo.joblib
 ├── graficos/
 │   ├── visitantes_sitios.png
 │   ├── seaborn_distribucion_visitantes.png
 │   ├── seaborn_visitantes_categoria.png
-│   └── seaborn_visitantes_calificacion.png
+│   ├── seaborn_visitantes_calificacion.png
+│   ├── perceptron_curva_aprendizaje.png
+│   └── matriz_confusion_modelo.png
 ├── src/
 │   ├── cargar_datos.py
 │   ├── eda_proyecto.py
 │   ├── main.py
 │   ├── perceptron_proyecto.py
 │   ├── preparacion_datos.py
-│   └── recomendador.py
+│   ├── recomendador.py
+│   ├── modelo_proyecto.py
+│   └── usar_modelo.py
 └── tests/
     └── test_perceptron_proyecto.py
 ```
 
 ## Datos
 
-El archivo `data/sitios_turisticos_cartago.csv` contiene siete sitios con
-nombre, categoría, visitantes mensuales, calificación, precio y horario.
-Entre los registros se encuentra Restaurante Casa Vieja, de categoría
-Gastronomía, con horario de 12:00 m a 9:00 p.m.
+El archivo `data/sitios_turisticos_cartago.csv` contiene 33 atractivos. Se incorporaron 23 atractivos del listado suministrado por la usuaria, asignados a las categorías existentes; los que ya estaban registrados se conservaron sin duplicarlos. El Aeropuerto de Santa Ana no se incluyó. Los visitantes por atractivo son estimaciones para el prototipo y todas las filas llevan `datos_estimados=1`; los datos de calificación, precio y horario de los 26 registros incorporados también son aproximados y no están verificados.
+
+El documento municipal de flujo turístico de Cartago para 2025 registra 196.568 visitantes en el año, pero no desglosa cifras por atractivo. Para construir una base comparable, el proyecto calcula un promedio mensual de 16.381 (196.568 / 12, redondeado) y lo distribuye entre los 33 sitios, conservando las proporciones relativas de las estimaciones previas y normalizándolas a 100 %. La columna `participacion_hipotetica_pct` deja visibles los pesos. El redondeo por mayor residuo mantiene la suma mensual en 16.381. La asignación es un supuesto de modelado, no una medición por sitio, y no representa visitantes únicos: una persona puede recorrer varios atractivos.
+
+Entre los registros se encuentra Restaurante Casa Vieja, de categoría Gastronomía, con horario de 12:00 m. a 9:00 p. m.
+
+### Base municipal y reparto hipotético
+
+El archivo `data/base_visitantes_municipal_2025.csv` conserva el total anual de referencia y el promedio mensual calculado. El documento proporcionado no contiene conteos mensuales exactos ni cifras por atractivo. El CSV de sitios distribuye el promedio mensual según los pesos hipotéticos; por tanto, el total coincide por diseño con la referencia mensual, no por una medición independiente de las visitas a cada sitio. Las estimaciones por sitio y los modelos derivados son demostrativos.
 
 ## Análisis y gráfica
 
-El programa calcula el total de sitios, promedio, máximo, mínimo y desviación
-estándar de visitantes, además del promedio general de calificaciones.
+El programa calcula el total de sitios, el promedio, el máximo, el mínimo y la desviación estándar de visitantes, además del promedio general de calificaciones.
 
 La gráfica se guarda en:
 
-```text
-graficos/visitantes_sitios.png
+`graficos/visitantes_sitios.png`
+
+Las barras utilizan colores por categoría y muestran el número de visitantes encima de cada barra.
+
+## Preparación de datos
+
+La actividad independiente de Pandas y Seaborn se aplica al conjunto de datos turísticos del proyecto. Se ejecuta por separado; no cambia el menú de recomendaciones ni modifica el CSV de entrada.
+
+```bash
+python src/preparacion_datos.py
 ```
 
-Las barras utilizan colores por categoría y muestran el número de visitantes
-encima de cada barra.
+La actividad aplica al conjunto de datos turístico las operaciones de la guía: selección de columnas relevantes, filtrado de sitios con afluencia igual o superior a la mediana, ordenamiento por visitantes y agrupación por categoría. El resumen de categorías calcula la cantidad de sitios, los visitantes totales, el promedio de visitantes y la calificación promedio a partir del CSV.
 
-## Preparación de Datos
+El análisis lee `data/sitios_turisticos_cartago.csv` con Pandas e informa las primeras y últimas filas, dimensiones, tipos de datos, estadísticas, valores nulos y duplicados.
 
-La actividad independiente de Pandas y Seaborn se aplica al dataset turístico
-del proyecto. Se ejecuta por separado; no cambia el menú de recomendaciones ni
-modifica el CSV de entrada:
+El CSV fuente tiene 33 filas y diez columnas. Los 33 valores de visitantes son estimaciones; los 26 registros incorporados también contienen aproximaciones de calificación, precio y horario. Los valores no se deben presentar como observaciones reales.
 
-```powershell
-python src\preparacion_datos.py
-```
+Si aparecen valores nulos en otros datos, el script utiliza la mediana para columnas numéricas y la moda para las categóricas. Para nombres u horarios ausentes utiliza `No especificado`, sin atribuir a un sitio la identidad u horario de otro. Las filas exactamente duplicadas se excluyen del archivo limpio.
 
-La actividad aplica al dataset turístico las operaciones de la guía: selección
-de columnas relevantes, filtrado de sitios con afluencia igual o superior a la
-mediana, ordenamiento por visitantes y agrupación por categoría. El resumen de
-categorías calcula cantidad de sitios, visitantes totales, promedio de
-visitantes y calificación promedio a partir del CSV.
+Se genera `es_gratuito` a partir de `precio` para identificar lugares con entrada gratuita. Para el archivo de preparación se codifica `categoria` mediante One-Hot Encoding. Se conservan `visitantes_mes` y `calificacion` como columnas numéricas. `precio` no se duplica como característica porque se utiliza el indicador `es_gratuito` para distinguir el acceso gratuito.
 
-El análisis lee `data/sitios_turisticos_cartago.csv` con Pandas e informa las
-primeras y últimas filas, dimensiones, tipos, estadísticas, valores nulos y
-duplicados. En el dataset actual hay 7 filas y 6 columnas, no hay valores
-nulos ni filas duplicadas. Los valores de visitantes, calificación y precio
-son válidos para sus rangos (visitantes y precio no negativos; calificación
-entre 0 y 5), por lo que no se imputan ni se alteran. Si aparecen nulos en
-otros datos, el script usa mediana para columnas numéricas y moda para las
-categóricas. Para nombre u horario ausentes usa `No especificado` para no
-atribuir a un sitio la identidad u horario de otro; las filas exactamente
-duplicadas se excluyen del archivo limpio.
+Los archivos generados son:
 
-Se genera `es_gratuito` a partir de `precio` para identificar lugares con
-entrada gratuita. Para el archivo de preparación se codifica `categoria` con
-One-Hot Encoding; se conservan `visitantes_mes`, `calificacion` y
-`es_gratuito` como características numéricas. `precio` no se duplica porque
-representa la misma señal que `es_gratuito` para distinguir acceso gratis.
+- `data/datos_turisticos_limpios.csv`
+- `data/sitios_turisticos_preparados_ml.csv`
 
-Los archivos generados son `data/datos_turisticos_limpios.csv` y
-`data/sitios_turisticos_preparados_ml.csv`. Las visualizaciones de Seaborn se
-guardan en `graficos/`: distribución de visitantes, promedio de visitantes
-por categoría, relación entre visitantes y calificación, y relación entre las
-entradas del perceptrón y su objetivo. El gráfico existente
-`graficos/visitantes_sitios.png` se conserva y lo genera la aplicación normal.
+Las visualizaciones de Seaborn se guardan en `graficos/`: distribución de visitantes, promedio de visitantes por categoría, relación entre visitantes y calificación, y relación entre las entradas del perceptrón y su objetivo. La gráfica existente `graficos/visitantes_sitios.png` se conserva y la genera la aplicación normal.
 
-En los datos actuales, el promedio mensual es 3057,14 visitantes, con un
-mínimo de 1200 (Casa del Virrey) y un máximo de 5000 (Centro Comercial Nuestro
-Cartago); la calificación promedio es 4,63. Recreativo registra dos sitios y
-las demás categorías uno cada una, así que las comparaciones por categoría
-deben leerse como descriptivas y no como conclusiones generales.
+En los 33 registros, la distribución hipotética suma 16.381 visitantes mensuales, con un promedio de aproximadamente 496 por atractivo. Estos valores se usan únicamente para practicar el análisis; no describen aforos observados.
 
-El resumen agrupado permite distinguir entre afluencia total y promedio: la
-categoría Recreativo suma 6000 visitantes porque tiene dos sitios, mientras
-Compras tiene el sitio individual con mayor afluencia (5000). Por el tamaño de
-la muestra, la gráfica de dispersión de visitantes y calificación sirve para
-explorar los registros, pero no basta para concluir que una variable cause o
-prediga la otra.
+La cantidad de sitios por categoría refleja la selección del prototipo, no la oferta total de Cartago. Los promedios y comparaciones por categoría son ilustrativos y no permiten conclusiones sobre la afluencia real.
+
+El resumen agrupado permite distinguir entre afluencia total y promedio. Los valores por categoría reflejan el prorrateo hipotético y el tamaño pequeño de la muestra; no describen aforos reales. La gráfica de dispersión de visitantes y calificación sirve para explorar los registros, pero no basta para concluir que una variable causa o predice la otra.
 
 ## Avance 2
 
-La preparación y el perceptrón son actividades independientes: no cambian el
-CSV original, el menú ni el recomendador. Para generar los datos limpios, los
-tres gráficos de Seaborn y el CSV codificado:
+La preparación de datos y el perceptrón son actividades independientes: no cambian el CSV original, el menú ni el recomendador.
 
-```powershell
-python src\preparacion_datos.py
+Para generar los datos limpios, los gráficos de Seaborn y el CSV codificado:
+
+```bash
+python src/preparacion_datos.py
 ```
 
 ### Objetivo y entradas del perceptrón
 
-El script `src/perceptron_proyecto.py` entrena desde cero con NumPy un modelo
-logístico de dos entradas. Para esta demostración académica, la clase positiva
-se define como `visitantes_mes >= mediana`; la mediana de los siete registros
-actuales es 3.200 visitantes mensuales. `visitantes_mes` define la etiqueta y
-por eso no se usa como entrada. Las entradas son `calificacion` y
-`es_gratuito`, estandarizadas con la media y desviación estándar del conjunto.
-El script implementa la sigmoide, la pérdida logarítmica y el descenso del
-gradiente sin usar Scikit-Learn.
+El script `src/perceptron_proyecto.py` entrena desde cero, utilizando NumPy, un modelo logístico de dos entradas.
+
+Para esta demostración académica, la clase positiva se define como `visitantes_mes >= mediana`. El umbral se calcula sobre los 33 registros estimados; en la distribución actual es de 368 visitantes mensuales. `visitantes_mes` define la etiqueta y, por eso, no se utiliza como entrada.
+
+Las entradas son `calificacion` y `es_gratuito`, estandarizadas con la media y la desviación estándar del conjunto. El script implementa el sigmoide, la pérdida logarítmica y el descenso del gradiente sin utilizar Scikit-Learn.
 
 ### Ajustes, tabla y análisis visual
 
-No se recibieron observaciones específicas sobre la sustentación del Avance 1;
-por tanto, no se atribuyen cambios a comentarios inexistentes. Este avance
-documenta por separado el trabajo de preparación de datos, visualización y
-modelo solicitado en la guía.
+No se recibieron observaciones específicas sobre la sustentación del Avance 1; por tanto, no se atribuyen cambios a comentarios inexistentes. Este avance documenta por separado el trabajo de preparación de datos, visualización y modelo solicitado en la guía.
 
-En el CSV fuente hay 7 filas, 6 columnas, 0 nulos y 0 duplicados. La limpieza
-no elimina ni imputa registros porque no se encontraron problemas en esos
-datos. El archivo limpio añade el indicador derivado `es_gratuito`; la tabla
-codificada para explorar ML agrega las columnas One-Hot de categoría.
+El CSV original tiene 33 filas y diez columnas. Los visitantes de los 33 registros son estimaciones distribuidas con pesos hipotéticos; las calificaciones, precios y horarios de los 26 atractivos incorporados también son aproximados. La tabla codificada incluye los 33 registros, por lo que sus métricas son únicamente demostrativas.
 
 | Etapa | Filas | Columnas | Nulos | Duplicados |
 |---|---:|---:|---:|---:|
-| CSV original | 7 | 6 | 0 | 0 |
-| CSV limpio, con `es_gratuito` | 7 | 7 | 0 | 0 |
-| CSV preparado, con categorías codificadas | 7 | 9 | 0 | 0 |
+| CSV original | 33 | 10 | 7 | 0 |
+| CSV limpio, con `es_gratuito` | 33 | 11 | 7 | 0 |
+| CSV preparado, con categorías codificadas | 33 | 9 | 0 | 0 |
 
-La autora indicó que la información turística se consultó en las fuentes de la
-sección **Referencias**. La relación exacta entre cada valor del CSV
-(visitantes por sitio, calificaciones y precios) y una tabla o página concreta
-de esas fuentes aún debe cotejarse antes de presentar cada valor como una
-transcripción directa. La publicación de Facebook se conserva solo como
-referencia complementaria, no como fuente estadística primaria.
+El CSV preparado tiene nueve columnas: tres características numéricas y seis columnas binarias para las categorías. Las siete celdas vacías en las dos primeras etapas corresponden a sitios sin una fuente documentada para sus datos descriptivos; las participaciones hipotéticas están completas para los 33 atractivos.
 
-Interpretación de los gráficos de Seaborn:
+La referencia municipal es agregada y no reporta afluencia por atractivo. La distribución por sitio es una aproximación reproducible a partir del promedio mensual y de los pesos publicados en el CSV; no debe citarse como medición individual. Las calificaciones, precios y horarios también requieren verificación independiente.
 
-1. **Distribución de visitantes:** muestra registros entre 1.200 y 5.000
-   visitantes mensuales. La muestra es pequeña y el histograma describe estos
-   siete sitios, no la demanda turística completa.
-2. **Visitantes promedio por categoría:** Compras tiene 5.000 visitantes y
-   Recreativo promedia 3.000 entre sus dos sitios. Las demás categorías tienen
-   un solo registro, por lo que las diferencias no son generalizables.
-3. **Visitantes y calificación:** Casa del Virrey combina la menor afluencia
-   (1.200) con una calificación de 4,9; el centro comercial combina la mayor
-   afluencia (5.000) con 4,3. Esto no prueba una relación causal o predictiva.
-4. **Entradas y objetivo:** `seaborn_entradas_objetivo.png` compara la
-   calificación y el acceso gratuito entre las clases menor y mayor que la
-   mediana de visitantes (3.200). Permite inspeccionar las entradas utilizadas
-   por el perceptrón; siete registros no bastan para establecer una regla
-   predictiva confiable.
+### Interpretación de los gráficos de Seaborn
 
-Ejecución local desde `TurismoCartagoIA`:
+- **Distribución de visitantes:** muestra valores entre 123 y 1.712 visitantes mensuales por sitio. Son cifras sintéticas o hipotéticas, no conteos observados.
+- **Visitantes promedio por categoría:** los promedios reflejan el reparto supuesto del total municipal y no permiten comparar la afluencia real de las categorías.
+- **Visitantes y calificación:** la relación se explora con valores de visitantes prorrateados y calificaciones preexistentes; no prueba causalidad ni capacidad predictiva.
+- **Entradas y objetivo:** `seaborn_entradas_objetivo.png` compara la calificación y el acceso gratuito entre las clases definidas por la mediana de visitantes. Los 33 registros estimados no permiten establecer una regla predictiva confiable.
 
-```powershell
-python src\perceptron_proyecto.py
+### Ejecución local del perceptrón
+
+Desde la carpeta `TurismoCartagoIA`:
+
+```bash
+python src/perceptron_proyecto.py
 ```
 
-El programa informa los dos pesos, el sesgo, las pérdidas inicial y final y la
-exactitud sobre los mismos siete registros usados para entrenar. También
-genera `graficos/perceptron_curva_aprendizaje.png` y
-`graficos/perceptron_frontera_decision.png`.
+El programa informa los dos pesos, el sesgo, las pérdidas inicial y final y la exactitud sobre los mismos 33 registros utilizados para entrenar. También genera:
 
-En la ejecución de referencia, la pérdida baja de 0,693147 a 0,287596 y la
-exactitud de entrenamiento es 85,71 %. Ambos pesos son positivos en esta
-ejecución: dentro de este ajuste, una calificación estandarizada mayor y el
-acceso gratuito se asocian con una probabilidad estimada mayor de pertenecer a
-la clase de alta afluencia. Esto no demuestra causalidad. La frontera lineal
-no separa perfectamente los registros: queda al menos un error de
-clasificación en la ejecución de referencia.
+- `graficos/perceptron_curva_aprendizaje.png`
+- `graficos/perceptron_frontera_decision.png`
 
-**Limitación:** siete observaciones no permiten una evaluación independiente ni
-conclusiones generalizables. La exactitud informada es de entrenamiento; se
-presenta solo para demostrar el algoritmo solicitado, no como rendimiento
-predictivo validado. Los datos de entrada del proyecto no incluyen una
-referencia trazable por fila para los valores de visitantes, calificaciones y
-precios; la verificación de la tabla/página de origen y el período de cada
-métrica queda pendiente antes de presentar resultados como evidencia real.
+En la ejecución actual, la pérdida baja de 0,693147 a 0,550726 y la exactitud sobre los mismos 33 registros de entrenamiento es de 66,67 %. Los pesos de calificación y gratuidad son positivos en este ajuste. Con un conjunto pequeño que incluye estimaciones, esos signos describen la solución matemática de esta corrida; no son evidencia de que la calificación o el acceso gratuito aumenten la afluencia real.
 
-Los gráficos y archivos de datos se generan a partir del CSV fuente; el script
-del perceptrón no cambia ese archivo.
+La frontera lineal no separa perfectamente los registros de entrenamiento.
 
-### Plan hacia el proyecto final
+**Limitación:** las 33 observaciones contienen cifras hipotéticas distribuidas a partir de un total municipal agregado y no permiten conclusiones generalizables. La exactitud informada es de entrenamiento; se presenta solo para demostrar el algoritmo solicitado, no como rendimiento predictivo validado. Las calificaciones, precios y horarios requieren verificación independiente.
 
-El problema de esta demostración es de **clasificación binaria**: distinguir
-entre afluencia menor a la mediana y afluencia igual o mayor a la mediana. Para
-la comparación de la Clase 12 se propone evaluar regresión logística y árbol
-de decisión con *balanced accuracy*, para considerar el desempeño de ambas
-clases. Antes de comparar modelos formalmente, se deben ampliar y documentar
-los datos; siete registros no permiten una partición de prueba ni una
-validación cruzada que respalde conclusiones. El calendario y los casos nuevos
-de demostración se completarán en el documento de entrega cuando se confirmen
-con el grupo.
+Los gráficos y archivos de datos se generan a partir de la fuente CSV; el script del perceptrón no cambia ese archivo.
+
+## Resultados del modelo de clasificación
+
+La última ejecución seleccionó la regresión logística con F1 medio de validación cruzada de 0,843. En la prueba de siete filas obtuvo exactitud 0,857, precisión 0,800, recall 1,000 y F1 0,889. Son métricas demostrativas del conjunto sintético; no representan rendimiento turístico validado.
 
 ## Ejecución local
 
 Desde la carpeta `TurismoCartagoIA`:
 
-```powershell
-python src\main.py
+```bash
+python src/main.py
 ```
 
 El menú ofrece estas opciones:
 
-1. Histórico / Cultural
-2. Recreativo / Natural
-3. Religioso
-4. Gastronómico / Compras
-5. Lugares gratuitos
-6. Salir
+- Histórico / Cultural
+- Recreativo / Natural
+- Religioso
+- Gastronómico / Compras
+- Lugares gratuitos
+- Salir
+
+## Referencias
+
+Fuentes consultadas el 15 de noviembre de 2026:
+
+- Reporte municipal de flujo turístico de Cartago (2025), documento PDF facilitado para el proyecto.
+- Municipio de Cartago. (2022). *Anuario Estadístico – Cartago 2022*. https://cartago.gov.co/anuario-estadistico-cartago-2022/
+- Concejo Municipal de Cartago. (2022). *Plan Sectorial de Turismo 2022–2032*. https://www.cartago.gov.co/Docs/ACUERDO%20No.%20017-2022-ADOPTA%20PLAN%20SECTORIAL%20DE%20TURISMO.pdf
+- Scikit-learn developers. (s. f.). *Cross-validation: Evaluating estimator performance*. https://scikit-learn.org/stable/modules/cross_validation.html
+- Scikit-learn developers. (s. f.). *Pipeline*. https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html
+- Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos, A., Cournapeau, D., Brucher, M., Perrot, M., & Duchesnay, É. (2011). Scikit-learn: Machine learning in Python. *Journal of Machine Learning Research, 12*, 2825–2830. https://www.jmlr.org/papers/v12/pedregosa11a.html
+- Harris, C. R., Millman, K. J., van der Walt, S. J., et al. (2020). Array programming with NumPy. *Nature, 585*(7825), 357–362. https://doi.org/10.1038/s41586-020-2649-2
+- Publicación de Facebook sobre visitantes alojados en Cartago durante Semana Santa. (s. f.). Referencia complementaria; no se usa como fuente primaria para entrenar o validar el modelo. https://www.facebook.com/100007741248027/photos/cartago-la-ciudad-del-valle-que-m%C3%A1s-turistas-aloj%C3%B3-en-la-semana-santa-seg%C3%BAn-dato/2931266880474658/
+
+## Comprobaciones
+
+Verificar que Docker está instalado y funciona:
+
+```bash
+docker run hello-world
+```
+
+Validar la configuración de Docker Compose:
+
+```bash
+docker compose config
+```
+
+Ejecutar las pruebas automatizadas desde la carpeta `TurismoCartagoIA`:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Las pruebas permiten comprobar que los casos incluidos en la suite funcionan correctamente en el entorno local.
 
 ## Ejecución con Docker
 
 Construir la imagen:
 
-```powershell
+```bash
 docker compose build
 ```
 
-Ejecutar el programa:
+Ejecutar la aplicación principal:
 
-```powershell
+```bash
 docker compose run --rm turismo-cartago
 ```
 
-Ejecutar la preparación de datos dentro del contenedor:
+Ejecutar la preparación de datos:
 
-```powershell
+```bash
 docker compose run --rm turismo-cartago python src/preparacion_datos.py
 ```
 
-Ejecutar el perceptrón dentro del contenedor:
+Ejecutar el perceptrón:
 
-```powershell
+```bash
 docker compose run --rm turismo-cartago python src/perceptron_proyecto.py
 ```
 
-Para abrir una terminal interactiva en el contenedor y mostrar el prompt
-solicitado durante el video:
+Para abrir una terminal interactiva dentro del contenedor:
 
-```powershell
+```bash
 docker compose run --rm --entrypoint bash turismo-cartago
 ```
 
@@ -287,63 +269,32 @@ cd /app/src
 python perceptron_proyecto.py
 ```
 
-Detener servicios activos:
+Detener los servicios activos:
 
-```powershell
+```bash
 docker compose down
 ```
 
-La gráfica se guarda en la carpeta `graficos` del proyecto porque Docker monta
-la carpeta local como volumen.
+Los archivos generados se guardan en la carpeta local `graficos` si el volumen está configurado para compartir esos archivos con el equipo.
 
-## Referencias
+## Modelo de clasificación de Clase 12
 
-Fuentes compartidas por la autora del proyecto; consultadas el 22 de octubre de
-2026:
+El script `src/modelo_proyecto.py` compara regresión logística, KNN y árbol de decisión para clasificar afluencia alta (visitantes mensuales iguales o superiores a la mediana) frente a afluencia menor. Usa los 33 registros, todos con visitantes estimados.
 
-1. SITUR Valle. (s. f.). *Estadísticas*. https://siturvalle.com/estadisticas/
-2. Municipio de Cartago. (2022). *Anuario Estadístico – Cartago 2022*.
-   https://cartago.gov.co/anuario-estadistico-cartago-2022/
-3. Publicación de Facebook sobre visitantes alojados en Cartago durante Semana
-   Santa. (s. f.). Referencia complementaria; no se usa como fuente primaria
-   para entrenar o validar el modelo.
-   https://www.facebook.com/100007741248027/photos/cartago-la-ciudad-del-valle-que-m%C3%A1s-turistas-aloj%C3%B3-en-la-semana-santa-seg%C3%BAn-dato/2931266880474658/
+Cada modelo utiliza un `Pipeline` que escala las variables numéricas y codifica la categoría. Los datos se separan con `test_size=0.2`, `random_state=42` y estratificación. La selección se hace por F1 promedio de validación cruzada sobre entrenamiento; se informa exactitud, precisión, recall y F1 en prueba, se guarda la matriz de confusión y se serializa el mejor Pipeline junto con sus metadatos.
 
-## Comprobaciones
+Desde la raíz `TurismoCartagoIA`, ejecuta primero el entrenamiento y luego la demostración:
 
-Para confirmar que Docker funciona:
-
-```powershell
-docker run hello-world
-docker compose build
-docker compose run --rm turismo-cartago
+```bash
+python src/modelo_proyecto.py
+python src/usar_modelo.py
 ```
 
-Para verificar localmente la aplicación y la actividad de preparación, ejecuta
-los comandos anteriores desde `TurismoCartagoIA`. La configuración Docker se
-puede revisar con `docker compose config` desde esa misma carpeta.
+El modelo queda en `models/modelo_turismo.joblib`; la tabla de métricas, en `data/comparacion_modelos.csv`; y la matriz de confusión, en `graficos/matriz_confusion_modelo.png`. Los casos de demostración y los 33 registros de visitantes estimados son hipotéticos; no representan cifras, calificaciones o precios confirmados por sitio. Las métricas describen el conjunto sintético y no rendimiento turístico validado en población.
 
-## Guion sugerido para el video
+## Entregables del proyecto final
 
-Para cumplir el criterio más estricto de duración indicado en la guía, preparar
-una grabación de hasta 5 minutos:
+- Informe final en PDF: `docs/Informe_Final_TurismoCartagoIA.pdf`.
+- Repositorio: https://github.com/piresvanessa08/CursoIA/tree/main/TurismoCartagoIA
 
-1. **0:00–0:40:** presentarse como Tatiana Vanessa Alvis, nombrar el proyecto y
-   explicar el problema turístico que se busca abordar.
-2. **0:40–1:30:** mostrar el CSV, sus siete filas, cero nulos y cero duplicados;
-   explicar la tabla antes/después y las decisiones de limpieza.
-3. **1:30–2:15:** mostrar los cuatro gráficos de Seaborn y resumir un hallazgo,
-   aclarando que son solo siete registros.
-4. **2:15–4:15:** mostrar el terminal Docker. Ejecutar
-   `docker compose run --rm --entrypoint bash turismo-cartago`, entrar a
-   `/app/src`, ejecutar `python perceptron_proyecto.py` y explicar el umbral,
-   las entradas, la pérdida, los pesos y los gráficos. Aclarar que el 85,71 %
-   es exactitud sobre entrenamiento, no validación independiente.
-5. **4:15–5:00:** presentar la propuesta de comparar regresión logística y
-   árbol de decisión con *balanced accuracy*, condicionada a conseguir más
-   datos trazables; cerrar indicando los próximos pasos.
-
-Antes de entregar, grabar y subir el video, pegar aquí o en AVACO su enlace
-público, y probarlo en una ventana de incógnito. La guía menciona tanto 10 como
-5 minutos; esta propuesta respeta el máximo de 5 minutos que aparece en la
-rúbrica.
+Antes de entregar, verifica que el repositorio público incluya los últimos cambios y que el enlace funcione desde una ventana privada.

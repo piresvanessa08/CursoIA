@@ -28,10 +28,21 @@ def recomendar_con_ia(datos, categoria_filtro=None, solo_gratis=False):
         elif not solo_gratis:
             score += 15.0
 
-        score += (sitio["calificacion"] * 5)
+        if sitio["calificacion"] is not None:
+            score += sitio["calificacion"] * 5
+        else:
+            score -= 10
 
         sitio_copia = sitio.copy()
+        datos_estimados = bool(sitio.get("datos_estimados", False))
         sitio_copia["compatibilidad"] = round(score, 1)
+        sitio_copia["datos_estimados"] = datos_estimados
+        sitio_copia["datos_verificados"] = (
+            not datos_estimados
+            and bool(sitio.get("fuente"))
+            and sitio["calificacion"] is not None
+            and sitio["precio"] is not None
+        )
         recomendaciones.append(sitio_copia)
 
     recomendaciones_ordenadas = sorted(recomendaciones, key=lambda x: x["compatibilidad"], reverse=True)

@@ -12,6 +12,8 @@ from src.perceptron_proyecto import (
     preparar_datos,
     sigmoid,
 )
+from src.cargar_datos import leer_datos
+from src.recomendador import recomendar_con_ia
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -23,14 +25,18 @@ class PerceptronProyectoTests(unittest.TestCase):
         cls.datos = pd.read_csv(
             PROJECT_DIR / "data" / "sitios_turisticos_cartago.csv"
         )
+        cls.datos = cls.datos.dropna(
+            subset=["visitantes_mes", "calificacion", "precio"]
+        ).copy()
         cls.datos["es_gratuito"] = cls.datos["precio"].eq(0).astype(int)
 
     def test_preparar_datos_define_umbral_y_estandariza_dos_entradas(self):
         X, y, medias, desviaciones, umbral = preparar_datos(self.datos)
 
-        self.assertEqual(umbral, 3200)
-        np.testing.assert_array_equal(y, [1, 1, 0, 0, 0, 1, 1])
-        self.assertEqual(X.shape, (7, 2))
+        visitantes = self.datos["visitantes_mes"].to_numpy()
+        self.assertEqual(umbral, np.median(visitantes))
+        np.testing.assert_array_equal(y, (visitantes >= umbral).astype(float))
+        self.assertEqual(X.shape, (len(self.datos), 2))
         np.testing.assert_allclose(X.mean(axis=0), [0, 0], atol=1e-12)
         np.testing.assert_allclose(X.std(axis=0), [1, 1], atol=1e-12)
         np.testing.assert_allclose(
@@ -61,6 +67,13 @@ class PerceptronProyectoTests(unittest.TestCase):
     def test_rechaza_entradas_distintas_de_dos_variables(self):
         with self.assertRaisesRegex(ValueError, "exactamente dos"):
             entrenar_perceptron(np.ones((3, 1)), np.array([0.0, 1.0, 0.0]))
+
+    def test_recomendaciones_identifican_datos_estimados_y_no_verificados(self):
+        sitios = leer_datos(PROJECT_DIR / "data" / "sitios_turisticos_cartago.csv")
+        recomendaciones = recomendar_con_ia(sitios)
+
+        self.assertTrue(all(sitio["datos_estimados"] for sitio in recomendaciones))
+        self.assertFalse(any(sitio["datos_verificados"] for sitio in recomendaciones))
 
     def test_visualizacion_genera_grafico_de_entradas_y_objetivo(self):
         datos = agregar_caracteristicas(self.datos)

@@ -50,7 +50,27 @@ def explorar_datos(datos):
 
 
 def analizar_operaciones_pandas(datos):
-    """Demuestra selección, filtrado, agrupación y ordenamiento con datos reales."""
+    """Demuestra operaciones de análisis sobre el CSV turístico del proyecto."""
+    if "datos_estimados" in datos:
+        estimados = int(pd.to_numeric(datos["datos_estimados"], errors="coerce").eq(1).sum())
+        prorrateados = int(
+            pd.to_numeric(
+                datos.get(
+                    "participacion_hipotetica_pct",
+                    pd.Series(index=datos.index, dtype=float),
+                ),
+                errors="coerce",
+            )
+            .notna()
+            .sum()
+        )
+        if estimados or prorrateados:
+            print(
+                f"\nAdvertencia: {estimados} registros contienen aproximaciones y "
+                f"los visitantes de {prorrateados} registros se distribuyeron "
+                "con pesos hipotéticos; los resúmenes son ilustrativos."
+            )
+
     columnas_clave = datos[["nombre", "categoria", "visitantes_mes", "calificacion"]]
     print("\nColumnas seleccionadas para analizar los sitios:")
     print(columnas_clave.head())
@@ -97,10 +117,11 @@ def limpiar_datos(datos):
         datos_limpios[columna] = pd.to_numeric(datos_limpios[columna], errors="coerce")
 
     limites = {
-        "visitantes_mes": datos_limpios["visitantes_mes"] < 0,
+        "visitantes_mes": datos_limpios["visitantes_mes"].notna()
+        & (datos_limpios["visitantes_mes"] < 0),
         "calificacion": datos_limpios["calificacion"].notna()
         & ~datos_limpios["calificacion"].between(0, 5),
-        "precio": datos_limpios["precio"] < 0,
+        "precio": datos_limpios["precio"].notna() & (datos_limpios["precio"] < 0),
     }
     for columna, invalidos in limites.items():
         if invalidos.any():
@@ -111,7 +132,14 @@ def limpiar_datos(datos):
             continue
 
         if pd.api.types.is_numeric_dtype(datos_limpios[columna]):
-            valor_relleno = datos_limpios[columna].median()
+            print(
+                f"Valores faltantes de '{columna}' se conservan como desconocidos; "
+                "no se imputan para evitar inventar información turística."
+            )
+            continue
+        if columna in {"fuente", "fuente_visitantes"}:
+            print(f"La columna '{columna}' se conserva vacía cuando no hay fuente documentada.")
+            continue
         elif columna in {"nombre", "horario"}:
             valor_relleno = "No especificado"
         else:
@@ -135,7 +163,9 @@ def limpiar_datos(datos):
 def agregar_caracteristicas(datos):
     """Añade un indicador derivado sin modificar la fuente original."""
     resultado = datos.copy()
-    resultado["es_gratuito"] = resultado["precio"].eq(0).astype(int)
+    resultado["es_gratuito"] = resultado["precio"].map(
+        lambda precio: np.nan if pd.isna(precio) else int(precio == 0)
+    )
     return resultado
 
 
@@ -251,17 +281,17 @@ def visualizar_datos(datos, output_dir):
     figura.savefig(output_dir / "seaborn_visitantes_calificacion.png", dpi=150)
     plt.close(figura)
 
-    datos_objetivo = datos.copy()
+    datos_objetivo = datos.dropna(subset=["visitantes_mes", "calificacion"]).copy()
     umbral_visitantes = datos_objetivo["visitantes_mes"].median()
     datos_objetivo["clase_afluencia"] = np.where(
         datos_objetivo["visitantes_mes"] >= umbral_visitantes,
         "Alta (>= mediana)",
         "Baja (< mediana)",
     )
-    datos_objetivo["acceso"] = np.where(
-        datos_objetivo["es_gratuito"].eq(1),
-        "Gratuito",
-        "Con costo",
+    datos_objetivo["acceso"] = np.select(
+        [datos_objetivo["es_gratuito"].eq(1), datos_objetivo["es_gratuito"].eq(0)],
+        ["Gratuito", "Con costo"],
+        default="No verificado",
     )
 
     figura, eje = plt.subplots(figsize=(9, 5))
@@ -270,7 +300,7 @@ def visualizar_datos(datos, output_dir):
         clases[0]: "#2563EB",
         clases[1]: "#E11D48",
     }
-    marcadores_acceso = {"Gratuito": "o", "Con costo": "s"}
+    marcadores_acceso = {"Gratuito": "o", "Con costo": "s", "No verificado": "X"}
     for clase in clases:
         for acceso, marcador in marcadores_acceso.items():
             subconjunto = datos_objetivo.loc[
@@ -343,7 +373,7 @@ def visualizar_datos(datos, output_dir):
 
 def preparar_ml(datos):
     # precio y es_gratuito representan la misma información; se evita duplicarla.
-    datos_ml = datos[["categoria", "visitantes_mes", "calificacion", "es_gratuito"]].copy()
+    datos_ml = datos[["categoria", "visitantes_mes", "calificacion", "es_gratuito"]].dropna().copy()
     datos_ml = pd.get_dummies(
         datos_ml,
         columns=["categoria"],

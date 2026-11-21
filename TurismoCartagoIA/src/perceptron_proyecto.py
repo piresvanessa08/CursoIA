@@ -120,6 +120,7 @@ def entrenar_perceptron(
 def cargar_dataset() -> tuple[pd.DataFrame, float]:
     datos = limpiar_datos(cargar_datos(DATA_PATH))
     datos = agregar_caracteristicas(datos)
+    datos = datos.dropna(subset=["visitantes_mes", *FEATURE_COLUMNS]).copy()
     return datos, float(np.median(datos["visitantes_mes"].to_numpy(dtype=float)))
 
 
@@ -202,6 +203,8 @@ def ejecutar(output_dir: Path = PROJECT_DIR / "graficos") -> PerceptronResult:
     exactitud = float(np.mean(predicciones == y))
     perdida_inicial = result.loss_history[0]
     perdida_final = result.loss_history[-1]
+    estimados = int(datos["datos_estimados"].eq(1).sum())
+    prorrateados = int(datos["participacion_hipotetica_pct"].notna().sum())
 
     curva = guardar_curva_aprendizaje(result.loss_history, output_dir)
     frontera = guardar_frontera_decision(X, y, result, output_dir)
@@ -222,7 +225,9 @@ def ejecutar(output_dir: Path = PROJECT_DIR / "graficos") -> PerceptronResult:
     print(f"Frontera de decisión: {frontera}")
     print(
         "Limitación: la exactitud es de entrenamiento, no una validación "
-        "independiente. Siete registros no permiten afirmar generalización."
+        f"independiente. El conjunto incluye {estimados} registros con "
+        f"aproximaciones y {prorrateados} valores de visitantes prorrateados "
+        "hipotéticamente; no permite afirmar generalización."
     )
     return result
 

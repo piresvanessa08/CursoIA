@@ -1,4 +1,8 @@
 .venv/
+.build/
+tmp/
+docs/
+presentacion/
 __pycache__/
 *.py[cod]
 .git/

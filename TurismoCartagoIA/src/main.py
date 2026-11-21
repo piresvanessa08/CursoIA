@@ -60,7 +60,21 @@ def main():
         print("\n✨ TOP DE RECOMENDACIONES IA PARA TI:")
         for idx, sitio in enumerate(resultados[:3], 1):
             print(f"\n{idx}. 📌 {sitio['nombre']} ({sitio['categoria']})")
-            print(f"   ⭐ Calificación: {sitio['calificacion']} | 💵 Precio: ${sitio['precio']:,.0f}")
+            calificacion = (
+                f"{sitio['calificacion']:.1f}"
+                if sitio["calificacion"] is not None
+                else "No verificada"
+            )
+            precio = (
+                f"${sitio['precio']:,.0f}"
+                if sitio["precio"] is not None
+                else "No verificado"
+            )
+            print(f"   ⭐ Calificación: {calificacion} | 💵 Precio: {precio}")
             print(f"   ⏰ Horario: {sitio['horario']} | 🎯 Índice de Match: {sitio['compatibilidad']}%")
+            if not sitio["datos_verificados"]:
+                print("   ℹ️ Datos no verificados individualmente; confirma la información antes de visitar.")
+            if sitio["datos_estimados"]:
+                print("   ℹ️ Valores aproximados para el prototipo, no datos oficiales.")
 if __name__ == "__main__":
     main()
