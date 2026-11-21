@@ -56,7 +56,7 @@ def analizar_operaciones_pandas(datos):
         prorrateados = int(
             pd.to_numeric(
                 datos.get(
-                    "participacion_hipotetica_pct",
+                    "participacion_estimada_pct",
                     pd.Series(index=datos.index, dtype=float),
                 ),
                 errors="coerce",
@@ -66,9 +66,9 @@ def analizar_operaciones_pandas(datos):
         )
         if estimados or prorrateados:
             print(
-                f"\nAdvertencia: {estimados} registros contienen aproximaciones y "
-                f"los visitantes de {prorrateados} registros se distribuyeron "
-                "con pesos hipotéticos; los resúmenes son ilustrativos."
+                f"\nNota: {estimados} registros contienen estimaciones y "
+                f"los visitantes de {prorrateados} registros se calcularon "
+                "mediante una distribución proporcional."
             )
 
     columnas_clave = datos[["nombre", "categoria", "visitantes_mes", "calificacion"]]

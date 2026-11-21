@@ -19,9 +19,9 @@ def predecir_escenarios() -> pd.DataFrame:
     modelo = artefacto["modelo"]
     escenarios = pd.DataFrame(
         [
-            {"caso": "Religioso, hipotético A", "categoria": "Religioso", "calificacion": 4.5, "es_gratuito": 1},
-            {"caso": "Cultural, hipotético B", "categoria": "Cultural", "calificacion": 4.2, "es_gratuito": 0},
-            {"caso": "Recreativo, hipotético C", "categoria": "Recreativo", "calificacion": 4.7, "es_gratuito": 1},
+            {"caso": "Escenario 1", "categoria": "Religioso", "calificacion": 4.5, "es_gratuito": 1},
+            {"caso": "Escenario 2", "categoria": "Cultural", "calificacion": 4.2, "es_gratuito": 0},
+            {"caso": "Escenario 3", "categoria": "Recreativo", "calificacion": 4.7, "es_gratuito": 1},
         ]
     )
     X_nuevos = escenarios[artefacto["columnas_entrada"]]
@@ -34,10 +34,7 @@ def predecir_escenarios() -> pd.DataFrame:
     ]
     escenarios["umbral_visitantes_usado"] = artefacto["umbral_visitantes"]
     print(f"Modelo cargado: {artefacto['nombre_modelo']}")
-    print(
-        "Los tres registros de demostración son escenarios hipotéticos; sus "
-        "calificaciones y precios no describen sitios reales."
-    )
+    print("Resultados de inferencia para tres perfiles de entrada de demostración:")
     print(escenarios.to_string(index=False))
     return escenarios
 

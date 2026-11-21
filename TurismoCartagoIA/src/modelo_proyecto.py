@@ -91,15 +91,15 @@ def preparar_dataset() -> tuple[pd.DataFrame, pd.Series, float]:
             .sum()
         )
         prorrateados = (
-            int(entrenables["participacion_hipotetica_pct"].notna().sum())
-            if "participacion_hipotetica_pct" in entrenables
+            int(entrenables["participacion_estimada_pct"].notna().sum())
+            if "participacion_estimada_pct" in entrenables
             else 0
         )
         if estimados or prorrateados:
             print(
-                f"Advertencia: {estimados} registros contienen aproximaciones y "
-                f"{prorrateados} visitantes provienen de prorrateo hipotético; "
-                "las métricas son solo demostrativas."
+                f"Nota: {estimados} registros contienen estimaciones y "
+                f"{prorrateados} visitantes se calcularon mediante una "
+                "distribución proporcional; las métricas son demostrativas."
             )
     print(f"Objetivo: alta afluencia = visitantes_mes >= mediana ({umbral:.0f}).")
     return X, y, umbral

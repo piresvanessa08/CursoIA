@@ -204,7 +204,7 @@ def ejecutar(output_dir: Path = PROJECT_DIR / "graficos") -> PerceptronResult:
     perdida_inicial = result.loss_history[0]
     perdida_final = result.loss_history[-1]
     estimados = int(datos["datos_estimados"].eq(1).sum())
-    prorrateados = int(datos["participacion_hipotetica_pct"].notna().sum())
+    prorrateados = int(datos["participacion_estimada_pct"].notna().sum())
 
     curva = guardar_curva_aprendizaje(result.loss_history, output_dir)
     frontera = guardar_frontera_decision(X, y, result, output_dir)
@@ -226,8 +226,9 @@ def ejecutar(output_dir: Path = PROJECT_DIR / "graficos") -> PerceptronResult:
     print(
         "Limitación: la exactitud es de entrenamiento, no una validación "
         f"independiente. El conjunto incluye {estimados} registros con "
-        f"aproximaciones y {prorrateados} valores de visitantes prorrateados "
-        "hipotéticamente; no permite afirmar generalización."
+        f"estimaciones y {prorrateados} valores de visitantes distribuidos "
+        "proporcionalmente desde la referencia municipal; no permite afirmar "
+        "generalización."
     )
     return result
 

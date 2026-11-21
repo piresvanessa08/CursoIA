@@ -63,13 +63,13 @@ TurismoCartagoIA/
 
 El archivo `data/sitios_turisticos_cartago.csv` contiene 33 atractivos. Se incorporaron 23 atractivos del listado suministrado por la usuaria, asignados a las categorías existentes; los que ya estaban registrados se conservaron sin duplicarlos. El Aeropuerto de Santa Ana no se incluyó. Los visitantes por atractivo son estimaciones para el prototipo y todas las filas llevan `datos_estimados=1`; los datos de calificación, precio y horario de los 26 registros incorporados también son aproximados y no están verificados.
 
-El documento municipal de flujo turístico de Cartago para 2025 registra 196.568 visitantes en el año, pero no desglosa cifras por atractivo. Para construir una base comparable, el proyecto calcula un promedio mensual de 16.381 (196.568 / 12, redondeado) y lo distribuye entre los 33 sitios, conservando las proporciones relativas de las estimaciones previas y normalizándolas a 100 %. La columna `participacion_hipotetica_pct` deja visibles los pesos. El redondeo por mayor residuo mantiene la suma mensual en 16.381. La asignación es un supuesto de modelado, no una medición por sitio, y no representa visitantes únicos: una persona puede recorrer varios atractivos.
+El documento municipal de flujo turístico de Cartago para 2025 registra 196.568 visitantes en el año, pero no desglosa cifras por atractivo. Para construir una base comparable, el proyecto calcula un promedio mensual de 16.381 (196.568 / 12, redondeado) y lo distribuye entre los 33 sitios, conservando las proporciones relativas de las estimaciones previas y normalizándolas a 100 %. La columna `participacion_estimada_pct` deja visibles los pesos. El redondeo por mayor residuo mantiene la suma mensual en 16.381.
 
 Entre los registros se encuentra Restaurante Casa Vieja, de categoría Gastronomía, con horario de 12:00 m. a 9:00 p. m.
 
-### Base municipal y reparto hipotético
+### Base municipal y distribución por sitio
 
-El archivo `data/base_visitantes_municipal_2025.csv` conserva el total anual de referencia y el promedio mensual calculado. El documento proporcionado no contiene conteos mensuales exactos ni cifras por atractivo. El CSV de sitios distribuye el promedio mensual según los pesos hipotéticos; por tanto, el total coincide por diseño con la referencia mensual, no por una medición independiente de las visitas a cada sitio. Las estimaciones por sitio y los modelos derivados son demostrativos.
+El archivo `data/base_visitantes_municipal_2025.csv` conserva el total anual de referencia y el promedio mensual calculado. El CSV de sitios distribuye el promedio mensual según las participaciones registradas en `participacion_estimada_pct`; las cifras por atractivo se deben interpretar como estimaciones y los modelos derivados como demostrativos.
 
 ## Análisis y gráfica
 
@@ -79,7 +79,7 @@ La gráfica se guarda en:
 
 `graficos/visitantes_sitios.png`
 
-Las barras utilizan colores por categoría y muestran el número de visitantes encima de cada barra.
+La gráfica utiliza barras horizontales ordenadas de mayor a menor, colores por categoría y nombres completos. El número aparece al final de cada barra y las etiquetas `[Gratis]` identifican los sitios con precio de entrada igual a cero.
 
 ## Preparación de datos
 
@@ -104,13 +104,13 @@ Los archivos generados son:
 - `data/datos_turisticos_limpios.csv`
 - `data/sitios_turisticos_preparados_ml.csv`
 
-Las visualizaciones de Seaborn se guardan en `graficos/`: distribución de visitantes, promedio de visitantes por categoría, relación entre visitantes y calificación, y relación entre las entradas del perceptrón y su objetivo. La gráfica existente `graficos/visitantes_sitios.png` se conserva y la genera la aplicación normal.
+Las visualizaciones de Seaborn se guardan en `graficos/`: distribución de visitantes, promedio de visitantes por categoría, relación entre visitantes y calificación, y relación entre las entradas del perceptrón y su objetivo. La gráfica `graficos/visitantes_sitios.png` se genera con barras horizontales para facilitar la lectura de los 33 nombres.
 
-En los 33 registros, la distribución hipotética suma 16.381 visitantes mensuales, con un promedio de aproximadamente 496 por atractivo. Estos valores se usan únicamente para practicar el análisis; no describen aforos observados.
+En los 33 registros, la distribución estimada suma 16.381 visitantes mensuales, con un promedio de aproximadamente 496 por atractivo.
 
 La cantidad de sitios por categoría refleja la selección del prototipo, no la oferta total de Cartago. Los promedios y comparaciones por categoría son ilustrativos y no permiten conclusiones sobre la afluencia real.
 
-El resumen agrupado permite distinguir entre afluencia total y promedio. Los valores por categoría reflejan el prorrateo hipotético y el tamaño pequeño de la muestra; no describen aforos reales. La gráfica de dispersión de visitantes y calificación sirve para explorar los registros, pero no basta para concluir que una variable causa o predice la otra.
+El resumen agrupado permite distinguir entre afluencia total y promedio. Los valores por categoría reflejan la distribución del conjunto y el tamaño pequeño de la muestra. La gráfica de dispersión de visitantes y calificación sirve para explorar los registros, pero no basta para concluir que una variable causa o predice la otra.
 
 ## Avance 2
 
@@ -134,7 +134,7 @@ Las entradas son `calificacion` y `es_gratuito`, estandarizadas con la media y l
 
 No se recibieron observaciones específicas sobre la sustentación del Avance 1; por tanto, no se atribuyen cambios a comentarios inexistentes. Este avance documenta por separado el trabajo de preparación de datos, visualización y modelo solicitado en la guía.
 
-El CSV original tiene 33 filas y diez columnas. Los visitantes de los 33 registros son estimaciones distribuidas con pesos hipotéticos; las calificaciones, precios y horarios de los 26 atractivos incorporados también son aproximados. La tabla codificada incluye los 33 registros, por lo que sus métricas son únicamente demostrativas.
+El CSV original tiene 33 filas y diez columnas. Los visitantes de los 33 registros son estimaciones distribuidas con pesos relativos; las calificaciones, precios y horarios de los 26 atractivos incorporados también son aproximados. La tabla codificada incluye los 33 registros, por lo que sus métricas son demostrativas.
 
 | Etapa | Filas | Columnas | Nulos | Duplicados |
 |---|---:|---:|---:|---:|
@@ -142,14 +142,14 @@ El CSV original tiene 33 filas y diez columnas. Los visitantes de los 33 registr
 | CSV limpio, con `es_gratuito` | 33 | 11 | 7 | 0 |
 | CSV preparado, con categorías codificadas | 33 | 9 | 0 | 0 |
 
-El CSV preparado tiene nueve columnas: tres características numéricas y seis columnas binarias para las categorías. Las siete celdas vacías en las dos primeras etapas corresponden a sitios sin una fuente documentada para sus datos descriptivos; las participaciones hipotéticas están completas para los 33 atractivos.
+El CSV preparado tiene nueve columnas: tres características numéricas y seis columnas binarias para las categorías. Las siete celdas vacías en las dos primeras etapas corresponden a sitios sin una fuente documentada para sus datos descriptivos; las participaciones están completas para los 33 atractivos.
 
 La referencia municipal es agregada y no reporta afluencia por atractivo. La distribución por sitio es una aproximación reproducible a partir del promedio mensual y de los pesos publicados en el CSV; no debe citarse como medición individual. Las calificaciones, precios y horarios también requieren verificación independiente.
 
 ### Interpretación de los gráficos de Seaborn
 
-- **Distribución de visitantes:** muestra valores entre 123 y 1.712 visitantes mensuales por sitio. Son cifras sintéticas o hipotéticas, no conteos observados.
-- **Visitantes promedio por categoría:** los promedios reflejan el reparto supuesto del total municipal y no permiten comparar la afluencia real de las categorías.
+- **Distribución de visitantes:** muestra valores entre 123 y 1.712 visitantes mensuales por sitio.
+- **Visitantes promedio por categoría:** los promedios reflejan la distribución del total municipal y no permiten comparar la afluencia real de las categorías.
 - **Visitantes y calificación:** la relación se explora con valores de visitantes prorrateados y calificaciones preexistentes; no prueba causalidad ni capacidad predictiva.
 - **Entradas y objetivo:** `seaborn_entradas_objetivo.png` compara la calificación y el acceso gratuito entre las clases definidas por la mediana de visitantes. Los 33 registros estimados no permiten establecer una regla predictiva confiable.
 
@@ -170,13 +170,13 @@ En la ejecución actual, la pérdida baja de 0,693147 a 0,550726 y la exactitud 
 
 La frontera lineal no separa perfectamente los registros de entrenamiento.
 
-**Limitación:** las 33 observaciones contienen cifras hipotéticas distribuidas a partir de un total municipal agregado y no permiten conclusiones generalizables. La exactitud informada es de entrenamiento; se presenta solo para demostrar el algoritmo solicitado, no como rendimiento predictivo validado. Las calificaciones, precios y horarios requieren verificación independiente.
+**Limitación:** las 33 observaciones contienen cifras estimadas distribuidas a partir de un total municipal agregado y no permiten conclusiones generalizables. La exactitud informada es de entrenamiento; se presenta solo para demostrar el algoritmo solicitado, no como rendimiento predictivo validado. Las calificaciones, precios y horarios requieren verificación independiente.
 
 Los gráficos y archivos de datos se generan a partir de la fuente CSV; el script del perceptrón no cambia ese archivo.
 
 ## Resultados del modelo de clasificación
 
-La última ejecución seleccionó la regresión logística con F1 medio de validación cruzada de 0,843. En la prueba de siete filas obtuvo exactitud 0,857, precisión 0,800, recall 1,000 y F1 0,889. Son métricas demostrativas del conjunto sintético; no representan rendimiento turístico validado.
+La última ejecución seleccionó la regresión logística con F1 medio de validación cruzada de 0,843. En la prueba de siete filas obtuvo exactitud 0,857, precisión 0,800, recall 1,000 y F1 0,889. Son métricas demostrativas del conjunto de datos del proyecto; no representan rendimiento turístico validado.
 
 ## Ejecución local
 
@@ -290,7 +290,7 @@ python src/modelo_proyecto.py
 python src/usar_modelo.py
 ```
 
-El modelo queda en `models/modelo_turismo.joblib`; la tabla de métricas, en `data/comparacion_modelos.csv`; y la matriz de confusión, en `graficos/matriz_confusion_modelo.png`. Los casos de demostración y los 33 registros de visitantes estimados son hipotéticos; no representan cifras, calificaciones o precios confirmados por sitio. Las métricas describen el conjunto sintético y no rendimiento turístico validado en población.
+El modelo queda en `models/modelo_turismo.joblib`; la tabla de métricas, en `data/comparacion_modelos.csv`; y la matriz de confusión, en `graficos/matriz_confusion_modelo.png`. Los valores de visitantes por sitio son estimaciones; las calificaciones, precios y horarios requieren confirmación. Las métricas son demostrativas y no representan rendimiento turístico validado en población.
 
 ## Entregables del proyecto final
 
